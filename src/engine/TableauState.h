@@ -52,7 +52,7 @@ public:
     */
     SparseMatrix *_A;
     SparseVector **_sparseColumnsOfA;
-    double *_denseA;
+    // double *_denseA;
 
     /*
       The right hand side

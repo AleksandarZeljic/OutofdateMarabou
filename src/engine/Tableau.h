@@ -439,7 +439,7 @@ private:
     */
     SparseMatrix *_A;
     SparseVector **_sparseColumnsOfA;
-    double *_denseA;
+    // double *_denseA;
 
     /*
       Used to compute inv(B)*a
@@ -461,6 +461,11 @@ private:
     */
     double *_workM;
     double *_workN;
+
+    /*
+      Space for storing dense columns of the constraint matrix
+    */
+    mutable double *_denseColumn;
 
     /*
       Working memory for extracting information from

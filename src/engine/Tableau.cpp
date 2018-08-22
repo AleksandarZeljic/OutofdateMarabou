@@ -31,12 +31,13 @@
 Tableau::Tableau()
     : _A( NULL )
     , _sparseColumnsOfA( NULL )
-    , _denseA( NULL )
+    // , _denseA( NULL )
     , _changeColumn( NULL )
     , _pivotRow( NULL )
     , _b( NULL )
     , _workM( NULL )
     , _workN( NULL )
+    , _denseColumn( NULL )
     , _unitVector( NULL )
     , _basisFactorization( NULL )
     , _multipliers( NULL )
@@ -83,11 +84,11 @@ void Tableau::freeMemoryIfNeeded()
         _sparseColumnsOfA = NULL;
     }
 
-    if ( _denseA )
-    {
-        delete[] _denseA;
-        _denseA = NULL;
-    }
+    // if ( _denseA )
+    // {
+    //     delete[] _denseA;
+    //     _denseA = NULL;
+    // }
 
     if ( _changeColumn )
     {
@@ -184,6 +185,12 @@ void Tableau::freeMemoryIfNeeded()
         delete[] _workN;
         _workN = NULL;
     }
+
+    if ( _denseColumn )
+    {
+        delete[] _denseColumn;
+        _denseColumn = NULL;
+    }
 }
 
 void Tableau::setDimensions( unsigned m, unsigned n )
@@ -206,9 +213,9 @@ void Tableau::setDimensions( unsigned m, unsigned n )
             throw ReluplexError( ReluplexError::ALLOCATION_FAILED, "Tableau::sparseColumnsOfA[i]" );
     }
 
-    _denseA = new double[m*n];
-    if ( !_denseA )
-        throw ReluplexError( ReluplexError::ALLOCATION_FAILED, "Tableau::denseA" );
+    // _denseA = new double[m*n];
+    // if ( !_denseA )
+    //     throw ReluplexError( ReluplexError::ALLOCATION_FAILED, "Tableau::denseA" );
 
     _changeColumn = new double[m];
     if ( !_changeColumn )
@@ -276,6 +283,10 @@ void Tableau::setDimensions( unsigned m, unsigned n )
     if ( !_workN )
         throw ReluplexError( ReluplexError::ALLOCATION_FAILED, "Tableau::work" );
 
+    _denseColumn = new double[m];
+    if ( !_denseColumn )
+        throw ReluplexError( ReluplexError::ALLOCATION_FAILED, "Tableau::denseColumn" );
+
     if ( _statistics )
         _statistics->setCurrentTableauDimension( _m, _n );
 }
@@ -287,9 +298,10 @@ void Tableau::setConstraintMatrix( const double *A )
     for ( unsigned column = 0; column < _n; ++column )
     {
         for ( unsigned row = 0; row < _m; ++row )
-            _denseA[column*_m + row] = A[row*_n + column];
+            _denseColumn[row] = A[row*_n + column];
+            // _denseA[column*_m + row] = A[row*_n + column];
 
-        _sparseColumnsOfA[column]->initialize( _denseA + ( column * _m ), _m );
+        _sparseColumnsOfA[column]->initialize( _denseColumn, _m );
     }
 }
 
@@ -1472,7 +1484,9 @@ const SparseMatrix *Tableau::getSparseA() const
 
 const double *Tableau::getAColumn( unsigned variable ) const
 {
-    return _denseA + ( variable * _m );
+    //    return _denseA + ( variable * _m );
+    _sparseColumnsOfA[variable]->toDense( _denseColumn );
+    return _denseColumn;
 }
 
 void Tableau::getSparseAColumn( unsigned variable, SparseVector *result ) const
@@ -1513,7 +1527,7 @@ void Tableau::storeState( TableauState &state ) const
     _A->storeIntoOther( state._A );
     for ( unsigned i = 0; i < _n; ++i )
         *state._sparseColumnsOfA[i] = *_sparseColumnsOfA[i];
-    memcpy( state._denseA, _denseA, sizeof(double) * _m * _n );
+    // memcpy( state._denseA, _denseA, sizeof(double) * _m * _n );
 
     // Store right hand side vector _b
     memcpy( state._b, _b, sizeof(double) * _m );
@@ -1554,7 +1568,7 @@ void Tableau::restoreState( const TableauState &state )
     state._A->storeIntoOther( _A );
     for ( unsigned i = 0; i < _n; ++i )
         *_sparseColumnsOfA[i] = *state._sparseColumnsOfA[i];
-    memcpy( _denseA, state._denseA, sizeof(double) * _m * _n );
+    // memcpy( _denseA, state._denseA, sizeof(double) * _m * _n );
 
     // Restore right hand side vector _b
     memcpy( _b, state._b, sizeof(double) * _m );
@@ -1698,13 +1712,13 @@ unsigned Tableau::addEquation( const Equation &equation )
         _workN[addend._variable] = addend._coefficient;
         _sparseColumnsOfA[addend._variable]->commitChange( _m - 1, addend._coefficient );
         _sparseColumnsOfA[addend._variable]->executeChanges();
-        _denseA[(addend._variable * _m) + _m - 1] = addend._coefficient;
+        // _denseA[(addend._variable * _m) + _m - 1] = addend._coefficient;
     }
 
     _workN[auxVariable] = 1;
     _sparseColumnsOfA[auxVariable]->commitChange( _m-1, 1 );
     _sparseColumnsOfA[auxVariable]->executeChanges();
-    _denseA[(auxVariable * _m) + _m - 1] = 1;
+    // _denseA[(auxVariable * _m) + _m - 1] = 1;
     _A->addLastRow( _workN );
 
     // Invalidate the cost function, so that it is recomputed in the next iteration.
@@ -1830,19 +1844,19 @@ void Tableau::addRow()
     _sparseColumnsOfA = newSparseColumnsOfA;
 
     // Allocate a larger _denseA, keep old entries
-    double *newDenseA = new double[newM * newN];
-    if ( !newDenseA )
-        throw ReluplexError( ReluplexError::ALLOCATION_FAILED, "Tableau::newDenseA" );
+    // double *newDenseA = new double[newM * newN];
+    // if ( !newDenseA )
+    //     throw ReluplexError( ReluplexError::ALLOCATION_FAILED, "Tableau::newDenseA" );
 
-    for ( unsigned column = 0; column < _n; ++column )
-    {
-        memcpy( newDenseA + ( column * newM ), _denseA + ( column * _m ), sizeof(double) * _m );
-        newDenseA[column*newM + newM - 1] = 0.0;
-    }
-    std::fill_n( newDenseA + ( newN - 1 ) * newM, newM, 0.0 );
+    // for ( unsigned column = 0; column < _n; ++column )
+    // {
+    //     memcpy( newDenseA + ( column * newM ), _denseA + ( column * _m ), sizeof(double) * _m );
+    //     newDenseA[column*newM + newM - 1] = 0.0;
+    // }
+    // std::fill_n( newDenseA + ( newN - 1 ) * newM, newM, 0.0 );
 
-    delete[] _denseA;
-    _denseA = newDenseA;
+    // delete[] _denseA;
+    // _denseA = newDenseA;
 
     // Allocate a new changeColumn. Don't need to initialize
     double *newChangeColumn = new double[newM];
@@ -1943,6 +1957,12 @@ void Tableau::addRow()
         throw ReluplexError( ReluplexError::ALLOCATION_FAILED, "Tableau::newWorkN" );
     delete[] _workN;
     _workN = newWorkN;
+
+    double *newDenseColumn = new double[newM];
+    if ( !newDenseColumn )
+        throw ReluplexError( ReluplexError::ALLOCATION_FAILED, "Tableau::newDenseColumn" );
+    delete[] _denseColumn;
+    _denseColumn = newDenseColumn;
 
     _m = newM;
     _n = newN;
@@ -2390,9 +2410,9 @@ void Tableau::mergeColumns( unsigned x1, unsigned x2 )
     _A->getColumn( x1, _sparseColumnsOfA[x1] );
 
     // And the dense ones, too
-    for ( unsigned i = 0; i < _m; ++i )
-        _denseA[x1*_m + i] += _denseA[x2*_m + i];
-    std::fill_n( _denseA + x2 * _m, _m, 0 );
+    // for ( unsigned i = 0; i < _m; ++i )
+    //     _denseA[x1*_m + i] += _denseA[x2*_m + i];
+    // std::fill_n( _denseA + x2 * _m, _m, 0 );
 
     computeAssignment();
     computeCostFunction();
