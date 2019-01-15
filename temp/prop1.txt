@@ -1,0 +1,20 @@
+solver: marabou_sbt
+property: property1.txt
+network                           result    running time    #visited states    avg pivoting time
+--------------------------------  --------  --------------  -----------------  -------------------
+ACASXU_run2a_1_4_batch_2000.nnet  UNSAT     13903.0         7148               505.0
+ACASXU_run2a_1_5_batch_2000.nnet  UNSAT     11660.0         3578               540.0
+ACASXU_run2a_1_6_batch_2000.nnet  UNSAT     14402.0         5140               494.0
+ACASXU_run2a_1_7_batch_2000.nnet  UNSAT     1826.0          1320               430.0
+ACASXU_run2a_1_8_batch_2000.nnet  UNSAT     1520.0          742                381.0
+ACASXU_run2a_1_9_batch_2000.nnet  UNSAT     2895.0          324                514.0
+ACASXU_run2a_3_1_batch_2000.nnet  UNSAT     13097.0         10172              321.0
+ACASXU_run2a_3_4_batch_2000.nnet  UNSAT     44444.0         7760               645.0
+ACASXU_run2a_3_9_batch_2000.nnet  TIMEOUT   86077.0         14844              149.0
+ACASXU_run2a_4_3_batch_2000.nnet  UNSAT     30972.0         9916               513.0
+ACASXU_run2a_4_8_batch_2000.nnet  TIMEOUT   86085.0         14799              652.0
+ACASXU_run2a_4_9_batch_2000.nnet  TIMEOUT   86085.0         13241              618.0
+ACASXU_run2a_5_3_batch_2000.nnet  UNSAT     11434.0         3574               407.0
+ACASXU_run2a_5_8_batch_2000.nnet  TIMEOUT   86077.0         2574               208.0
+
+Average                                     35034.071       6795.143           455.500

@@ -1,0 +1,32 @@
+solver: marabou_sbt
+property: property2.txt
+network                           result    running time    #visited states    avg pivoting time
+--------------------------------  --------  --------------  -----------------  -------------------
+ACASXU_run2a_1_2_batch_2000.nnet  SAT       13061.0         3510               1202.0
+ACASXU_run2a_1_4_batch_2000.nnet  SAT       13775.0         2409               709.0
+ACASXU_run2a_1_5_batch_2000.nnet  TIMEOUT   86098.0         593                167.0
+ACASXU_run2a_2_1_batch_2000.nnet  SAT       173.0           68                 389.0
+ACASXU_run2a_2_3_batch_2000.nnet  SAT       717.0           302                357.0
+ACASXU_run2a_2_4_batch_2000.nnet  SAT       437.0           178                384.0
+ACASXU_run2a_2_5_batch_2000.nnet  SAT       1899.0          605                545.0
+ACASXU_run2a_2_6_batch_2000.nnet  SAT       3597.0          952                609.0
+ACASXU_run2a_2_8_batch_2000.nnet  SAT       2420.0          391                639.0
+ACASXU_run2a_3_1_batch_2000.nnet  SAT       2665.0          393                416.0
+ACASXU_run2a_3_5_batch_2000.nnet  SAT       19335.0         3720               615.0
+ACASXU_run2a_3_6_batch_2000.nnet  SAT       240.0           82                 460.0
+ACASXU_run2a_3_7_batch_2000.nnet  SAT       14303.0         1397               1393.0
+ACASXU_run2a_4_1_batch_2000.nnet  SAT       77.0            39                 302.0
+ACASXU_run2a_4_3_batch_2000.nnet  SAT       28.0            18                 359.0
+ACASXU_run2a_4_4_batch_2000.nnet  SAT       281.0           105                486.0
+ACASXU_run2a_4_6_batch_2000.nnet  SAT       5160.0          2363               412.0
+ACASXU_run2a_4_7_batch_2000.nnet  SAT       18333.0         4809               608.0
+ACASXU_run2a_4_8_batch_2000.nnet  SAT       25963.0         5270               619.0
+ACASXU_run2a_4_9_batch_2000.nnet  SAT       58080.0         15546              436.0
+ACASXU_run2a_5_2_batch_2000.nnet  SAT       1545.0          566                357.0
+ACASXU_run2a_5_4_batch_2000.nnet  SAT       241.0           77                 408.0
+ACASXU_run2a_5_5_batch_2000.nnet  SAT       4809.0          1146               642.0
+ACASXU_run2a_5_6_batch_2000.nnet  SAT       11830.0         5985               485.0
+ACASXU_run2a_5_7_batch_2000.nnet  SAT       4374.0          361                1741.0
+ACASXU_run2a_5_9_batch_2000.nnet  TIMEOUT   86097.0         2636               205.0
+
+Average                                     14443.769       2058.500           574.808

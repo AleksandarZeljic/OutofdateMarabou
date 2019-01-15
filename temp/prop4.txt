@@ -1,0 +1,48 @@
+solver: marabou_sbt
+property: property4.txt
+network                           result    running time    #visited states    avg pivoting time
+--------------------------------  --------  --------------  -----------------  -------------------
+ACASXU_run2a_1_1_batch_2000.nnet  UNSAT     17355.0         5232               623.0
+ACASXU_run2a_1_3_batch_2000.nnet  UNSAT     6783.0          2688               610.0
+ACASXU_run2a_1_4_batch_2000.nnet  UNSAT     5.0             1                  762.0
+ACASXU_run2a_1_5_batch_2000.nnet  UNSAT     3177.0          1662               648.0
+ACASXU_run2a_1_6_batch_2000.nnet  UNSAT     12172.0         998                672.0
+ACASXU_run2a_1_7_batch_2000.nnet  SAT       9.0             5                  457.0
+ACASXU_run2a_1_8_batch_2000.nnet  SAT       19.0            7                  448.0
+ACASXU_run2a_1_9_batch_2000.nnet  SAT       4.0             1                  486.0
+ACASXU_run2a_2_1_batch_2000.nnet  UNSAT     3.0             1                  587.0
+ACASXU_run2a_2_2_batch_2000.nnet  UNSAT     2158.0          886                562.0
+ACASXU_run2a_2_3_batch_2000.nnet  UNSAT     4.0             1                  787.0
+ACASXU_run2a_2_4_batch_2000.nnet  UNSAT     242.0           118                493.0
+ACASXU_run2a_2_5_batch_2000.nnet  UNSAT     567.0           288                469.0
+ACASXU_run2a_2_6_batch_2000.nnet  UNSAT     756.0           192                453.0
+ACASXU_run2a_2_7_batch_2000.nnet  UNSAT     144.0           120                389.0
+ACASXU_run2a_2_8_batch_2000.nnet  UNSAT     1231.0          390                331.0
+ACASXU_run2a_2_9_batch_2000.nnet  UNSAT     16.0            12                 416.0
+ACASXU_run2a_3_1_batch_2000.nnet  UNSAT     3699.0          542                612.0
+ACASXU_run2a_3_2_batch_2000.nnet  UNSAT     2096.0          650                681.0
+ACASXU_run2a_3_3_batch_2000.nnet  UNSAT     332.0           156                450.0
+ACASXU_run2a_3_4_batch_2000.nnet  UNSAT     3.0             1                  505.0
+ACASXU_run2a_3_7_batch_2000.nnet  UNSAT     574.0           208                479.0
+ACASXU_run2a_3_8_batch_2000.nnet  UNSAT     497.0           208                359.0
+ACASXU_run2a_3_9_batch_2000.nnet  UNSAT     876.0           528                380.0
+ACASXU_run2a_4_1_batch_2000.nnet  UNSAT     421.0           144                550.0
+ACASXU_run2a_4_2_batch_2000.nnet  UNSAT     819.0           266                546.0
+ACASXU_run2a_4_3_batch_2000.nnet  UNSAT     835.0           300                631.0
+ACASXU_run2a_4_4_batch_2000.nnet  UNSAT     460.0           322                409.0
+ACASXU_run2a_4_5_batch_2000.nnet  UNSAT     421.0           154                459.0
+ACASXU_run2a_4_6_batch_2000.nnet  UNSAT     75.0            66                 384.0
+ACASXU_run2a_4_7_batch_2000.nnet  UNSAT     49.0            44                 297.0
+ACASXU_run2a_4_8_batch_2000.nnet  UNSAT     360.0           204                488.0
+ACASXU_run2a_4_9_batch_2000.nnet  UNSAT     499.0           316                429.0
+ACASXU_run2a_5_1_batch_2000.nnet  UNSAT     1364.0          650                611.0
+ACASXU_run2a_5_2_batch_2000.nnet  UNSAT     451.0           140                576.0
+ACASXU_run2a_5_3_batch_2000.nnet  UNSAT     1116.0          148                533.0
+ACASXU_run2a_5_4_batch_2000.nnet  UNSAT     3.0             1                  518.0
+ACASXU_run2a_5_5_batch_2000.nnet  UNSAT     365.0           232                382.0
+ACASXU_run2a_5_6_batch_2000.nnet  UNSAT     273.0           170                373.0
+ACASXU_run2a_5_7_batch_2000.nnet  UNSAT     32.0            34                 358.0
+ACASXU_run2a_5_8_batch_2000.nnet  UNSAT     5.0             1                  721.0
+ACASXU_run2a_5_9_batch_2000.nnet  UNSAT     265.0           200                431.0
+
+Average                                     1441.310        435.405            508.452
