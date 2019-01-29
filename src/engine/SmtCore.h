@@ -56,7 +56,7 @@ public:
       Perform the split according to the constraint marked for
       splitting. Update bounds, add equations and update the stack.
     */
-    void performSplit();
+    void performSplit( ITableau *tableau );
 
     /*
       Pop an old split from the stack, and perform a new split as
@@ -107,10 +107,22 @@ private:
     struct StackEntry
     {
     public:
+        StackEntry()
+            : _caseSplit( true )
+        {
+        }
+
         PiecewiseLinearCaseSplit _activeSplit;
         List<PiecewiseLinearCaseSplit> _impliedValidSplits;
         List<PiecewiseLinearCaseSplit> _alternativeSplits;
         EngineState *_engineState;
+
+        // True for case split, false for range split
+        bool _caseSplit;
+
+        // Rnage split stuff
+        unsigned _varBeingSplitOn;
+        List<Pair<double, double>> _alternativeRangeSplits;
     };
 
     /*

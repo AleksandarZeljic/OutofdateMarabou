@@ -163,7 +163,7 @@ bool Engine::solve( unsigned timeoutInSeconds )
             // Perform any SmtCore-initiated case splits
             if ( _smtCore.needToSplit() )
             {
-                _smtCore.performSplit();
+                _smtCore.performSplit( _tableau );
 
                 do
                 {

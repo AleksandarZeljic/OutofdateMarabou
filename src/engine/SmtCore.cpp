@@ -69,7 +69,7 @@ bool SmtCore::needToSplit() const
     return _needToSplit;
 }
 
-void SmtCore::performSplit()
+void SmtCore::performSplit( ITableau *tableau )
 {
     ASSERT( _needToSplit );
 
@@ -86,6 +86,83 @@ void SmtCore::performSplit()
 
     ASSERT( _constraintForSplitting->isActive() );
     _needToSplit = false;
+
+    // Experimental - New:
+    bool experimental = false;
+    if ( experimental && ( _stack.size() < 10 ) )
+    {
+        // printf( "Stack size <10, performing a range split!\n" );
+
+        unsigned selectInput = 0;
+        double rangeSize = 0;
+        for ( unsigned i = 0; i < 5; ++i )
+        {
+            double range =
+                tableau->getUpperBound( i ) -
+                tableau->getLowerBound( i );
+
+            if ( range > rangeSize )
+            {
+                selectInput = i;
+                rangeSize = range;
+            }
+
+            // printf( "\tInput %u, range [%.5lf, %.5lf], size = %.5lf\n",
+            //         i,
+            //         tableau->getLowerBound( i ),
+            //         tableau->getUpperBound( i ),
+            //         range );
+        }
+
+        // printf( "Selected input for splitting: var x%u\n", selectInput );
+
+        // Input with largest range selected, now split.
+
+        // Obtain the current state of the engine
+        EngineState *stateBeforeSplits = new EngineState;
+        stateBeforeSplits->_stateId = _stateId;
+        ++_stateId;
+        _engine->storeState( *stateBeforeSplits, true );
+
+        StackEntry *stackEntry = new StackEntry;
+
+        stackEntry->_caseSplit = false;
+
+        // Prepare the splits
+        double lb = tableau->getLowerBound( selectInput );
+        double ub = tableau->getUpperBound( selectInput );
+        double mid = ( lb + ub ) / 2;
+
+        PiecewiseLinearCaseSplit split1;
+        split1.storeBoundTightening( Tightening( selectInput, mid, Tightening::UB ) );
+
+        PiecewiseLinearCaseSplit split2;
+        split2.storeBoundTightening( Tightening( selectInput, mid, Tightening::LB ) );
+
+
+        // printf( "the two splits are:\n" );
+        // split1.dump();
+        // split2.dump();
+
+        _engine->applySplit( split1 );
+        stackEntry->_activeSplit = split1;
+
+
+        // Store the remaining splits on the stack, for later
+        stackEntry->_engineState = stateBeforeSplits;
+        stackEntry->_alternativeSplits.append( split2 );
+
+        _stack.append( stackEntry );
+        if ( _statistics )
+        {
+            _statistics->setCurrentStackDepth( getStackDepth() );
+            struct timespec end = TimeUtils::sampleMicro();
+            _statistics->addTimeSmtCore( TimeUtils::timePassed( start, end ) );
+        }
+
+        return;
+    }
+    // Experimental - new (DONE)
 
     if ( _statistics )
     {
@@ -112,6 +189,7 @@ void SmtCore::performSplit()
     List<PiecewiseLinearCaseSplit>::iterator split = splits.begin();
     _engine->applySplit( *split );
     stackEntry->_activeSplit = *split;
+
 
     // Store the remaining splits on the stack, for later
     stackEntry->_engineState = stateBeforeSplits;
