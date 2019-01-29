@@ -119,6 +119,8 @@ public:
     void run();
     void run( bool useLinearConcretization );
 
+    void computeGradient();
+
     /*
       After running the tools, these methods will extract the discovered
       bounds for every neuron
@@ -137,9 +139,17 @@ private:
     double **_biases;
     WeightMatrix *_weights;
 
+    unsigned *_activationMasks;
+
     // Lower and upper bounds for input neurons
     Map<unsigned,double> _inputLowerBounds;
     Map<unsigned,double> _inputUpperBounds;
+
+    // Gradient stuff
+    double *_gradUpper;
+    double *_grad1Upper;
+    double *_gradLower;
+    double *_grad1Lower;
 
     // Lower and upper bounds for internal neurons
     double **_lowerBounds;

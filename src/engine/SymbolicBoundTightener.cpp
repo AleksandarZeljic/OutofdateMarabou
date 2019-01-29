@@ -23,6 +23,11 @@ SymbolicBoundTightener::SymbolicBoundTightener()
     : _layerSizes( NULL )
     , _biases( NULL )
     , _weights( NULL )
+    , _activationMasks( NULL )
+    , _gradUpper( NULL )
+    , _grad1Upper( NULL )
+    , _gradLower( NULL )
+    , _grad1Lower( NULL )
     , _lowerBounds( NULL )
     , _upperBounds( NULL )
     , _currentLayerLowerBounds( NULL )
@@ -166,6 +171,36 @@ void SymbolicBoundTightener::freeMemoryIfNeeded()
         _layerSizes = NULL;
     }
 
+    if ( _activationMasks )
+    {
+        delete[] _activationMasks;
+        _activationMasks = NULL;
+    }
+
+    if ( _gradUpper )
+    {
+        delete[] _gradUpper;
+        _gradUpper = NULL;
+    }
+
+    if ( _grad1Upper )
+    {
+        delete[] _grad1Upper;
+        _grad1Upper = NULL;
+    }
+
+    if ( _gradLower )
+    {
+        delete[] _gradLower;
+        _gradLower = NULL;
+    }
+
+    if ( _grad1Lower )
+    {
+        delete[] _grad1Lower;
+        _grad1Lower = NULL;
+    }
+
     _inputLowerBounds.clear();
     _inputUpperBounds.clear();
 }
@@ -235,7 +270,14 @@ void SymbolicBoundTightener::allocateWeightAndBiasSpace()
         if ( _maxLayerSize < _layerSizes[i] )
             _maxLayerSize = _layerSizes[i];
 
+    _activationMasks = new unsigned[_maxLayerSize * _numberOfLayers];
+
     _inputLayerSize = _layerSizes[0];
+
+    _gradUpper = new double[_maxLayerSize];
+    _grad1Upper = new double[_maxLayerSize];
+    _gradLower = new double[_maxLayerSize];
+    _grad1Lower = new double[_maxLayerSize];
 
     _inputNeuronToIndex.clear();
     for ( unsigned i = 0; i < _inputLayerSize; ++i )
@@ -298,6 +340,8 @@ void SymbolicBoundTightener::run( bool useLinearConcretization )
     }
     std::fill_n( _previousLayerLowerBias, _maxLayerSize, 0 );
     std::fill_n( _previousLayerUpperBias, _maxLayerSize, 0 );
+
+    std::fill_n( _activationMasks, _maxLayerSize * _numberOfLayers, 0 );
 
     log( "Initializing.\n\tLB matrix:\n" );
     for ( unsigned i = 0; i < _inputLayerSize; ++i )
@@ -541,6 +585,8 @@ void SymbolicBoundTightener::run( bool useLinearConcretization )
                         }
                         _currentLayerLowerBias[i] = 0;
                         _currentLayerUpperBias[i] = 0;
+
+                        // activation mask remains 0
                     }
                     else if ( lbLb >= 0 )
                     {
@@ -548,11 +594,15 @@ void SymbolicBoundTightener::run( bool useLinearConcretization )
                         // The ReLU will not affect this entry
 
                         log( "SBT: eliminated nothing!\n" );
+
+                        _activationMasks[currentLayer * _maxLayerSize + i] = 2;
                     }
                     else
                     {
                         // lbLb < 0 < ubUb
                         // The ReLU might affect this entry, we need to figure out how
+
+                        _activationMasks[currentLayer * _maxLayerSize + i] = 1;
 
                         if ( ubLb < 0 )
                         {
@@ -627,6 +677,9 @@ void SymbolicBoundTightener::run( bool useLinearConcretization )
                     {
                         // printf( "Relu <%u,%u> is ACTIVE, leaving equations as is\n", reluIndex._layer, reluIndex._neuron );
                         // Active ReLU, bounds are propagated as is
+
+                        _activationMasks[currentLayer * _maxLayerSize + i] = 2;
+
                     }
                     else
                     {
@@ -667,6 +720,76 @@ void SymbolicBoundTightener::run( bool useLinearConcretization )
         memcpy( _previousLayerLowerBias, _currentLayerLowerBias, sizeof(double) * _maxLayerSize );
         memcpy( _previousLayerUpperBias, _currentLayerUpperBias, sizeof(double) * _maxLayerSize );
     }
+}
+
+void SymbolicBoundTightener::computeGradient()
+{
+    // This depends on the property
+    unsigned targetOutputVariable = 0;
+
+    // Initialize grad_upper and grad_lower with the weights of edges going
+    // into the target variable
+
+    for ( unsigned i = 0; i < _layerSizes[_numberOfLayers - 2]; ++i )
+    {
+        unsigned weightMatrixIndex = i * _layerSizes[_numberOfLayers - 2] + targetOutputVariable;
+
+        _gradUpper[i] =
+            _weights[_numberOfLayers - 2]._positiveValues[weightMatrixIndex] +
+            _weights[_numberOfLayers - 2]._negativeValues[weightMatrixIndex];
+
+        _gradLower[i] = _gradUpper[i];
+    }
+
+    // Now go backwards over the other layers
+    for ( int layer = _numberOfLayers - 3; layer > -1; --layer )
+    {
+        std::fill_n( _grad1Lower, _maxLayerSize, 0 );
+        std::fill_n( _grad1Upper, _maxLayerSize, 0 );
+
+        // j is the size of the current layer
+        for ( unsigned j = 0; j < _layerSizes[layer + 1]; ++j )
+        {
+            if ( _activationMasks[(layer * _maxLayerSize) + j] == 0 )
+            {
+                _gradLower[j] = 0;
+                _gradUpper[j] = 0;
+            }
+            else if ( _activationMasks[(layer * _maxLayerSize) + j] == 1 )
+            {
+                _gradUpper[j] = ( _gradUpper[j] > 0 ) ? _gradUpper[j] : 0;
+                _gradLower[j] = ( _gradLower[j] < 0 ) ? _gradLower[j] : 0;
+            }
+
+            // i is the size of the previous layer
+            for ( unsigned i = 0; i < _layerSizes[layer]; ++i )
+            {
+                unsigned weightIndex = i * _layerSizes[layer] + j;
+                double weight =
+                    _weights[layer]._positiveValues[weightIndex] +
+                    _weights[layer]._negativeValues[weightIndex];
+
+                if ( weight >= 0)
+                {
+                    _grad1Upper[i] += weight * _gradUpper[j];
+                    _grad1Lower[i] += weight * _gradLower[j];
+                }
+                else
+                {
+                    _grad1Upper[i] += weight * _gradLower[j];
+                    _grad1Lower[i] += weight * _gradUpper[j];
+                }
+            }
+        }
+
+        if ( layer != 0 )
+        {
+            memcpy( _gradUpper, _grad1Upper, sizeof(double) * _maxLayerSize );
+            memcpy( _gradLower, _grad1Lower, sizeof(double) * _maxLayerSize );
+        }
+    }
+
+    // The answers are left in _grad1Lower and _grad1Upper
 }
 
 double SymbolicBoundTightener::getLowerBound( unsigned layer, unsigned neuron ) const
